@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LLCR Калькулятор</title>
+    <style>
+        :root {
+            --tg-theme-bg: #ffffff;
+            --tg-theme-text: #000000;
+            --tg-theme-hint: #999999;
+            --tg-theme-link: #2481cc;
+            --tg-theme-button: #2481cc;
+            --tg-theme-button-text: #ffffff;
+            --tg-theme-secondary-bg: #f5f5f5;
+            --border: #ccc;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --tg-theme-bg: #1c1c1d;
+                --tg-theme-text: #f0f0f0;
+                --tg-theme-hint: #aaa;
+                --tg-theme-link: #6ab4f0;
+                --tg-theme-button: #6ab4f0;
+                --tg-theme-button-text: #1c1c1d;
+                --tg-theme-secondary-bg: #2c2c2e;
+                --border: #444;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg);
+            color: var(--tg-theme-text);
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        h2 { text-align: center; }
+        fieldset {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            background: var(--tg-theme-secondary-bg);
+        }
+        legend {
+            font-weight: bold;
+            padding: 0 8px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        label {
+            font-size: 0.9rem;
+            color: var(--tg-theme-hint);
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: var(--tg-theme-bg);
+            color: var(--tg-theme-text);
+        }
+        button {
+            background: var(--tg-theme-button);
+            color: var(--tg-theme-button-text);
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .results {
+            background: var(--tg-theme-secondary-bg);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .result-item span:last-child {
+            font-weight: bold;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: var(--tg-theme-hint);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>LLCR – быстрый ориентировочный расчёт</h2>
+        <form id="calcForm">
+            <fieldset>
+                <legend>Продаваемая площадь и цены</legend>
+                <div class="form-group">
+                    <label>Жилая (м²)</label>
+                    <input type="number" id="areaRes" value="5000" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Цена жилья (₽/м²)</label>
+                    <input type="number" id="priceRes" value="150000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Коммерческая (м²)</label>
+                    <input type="number" id="areaComm" value="500" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Цена коммерции (₽/м²)</label>
+                    <input type="number" id="priceComm" value="200000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Кладовки (м²)</label>
+                    <input type="number" id="areaStor" value="200" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Цена кладовок (₽/м²)</label>
+                    <input type="number" id="priceStor" value="80000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Апартаменты (м²)</label>
+                    <input type="number" id="areaApart" value="1000" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Цена апартаментов (₽/м²)</label>
+                    <input type="number" id="priceApart" value="160000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Машиноместа (шт.)</label>
+                    <input type="number" id="spots" value="100" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Цена машиноместа (₽/шт.)</label>
+                    <input type="number" id="priceSpot" value="2000000" step="1">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Затраты</legend>
+                <div class="form-group">
+                    <label>СМР на м² продаваемой площади (без парковки)</label>
+                    <input type="number" id="costCMR" value="60000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Соц. обязательства на м²</label>
+                    <input type="number" id="costSoc" value="5000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Сети на м²</label>
+                    <input type="number" id="costNet" value="10000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>СМР+соц+сети на 1 м/м (₽/шт.)</label>
+                    <input type="number" id="costSpot" value="500000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Плата за изменение ВРИ (₽)</label>
+                    <input type="number" id="vri" value="20000000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Прочие расходы (₽)</label>
+                    <input type="number" id="other" value="10000000" step="1">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Коммерческие и операционные расходы</legend>
+                <div class="form-group">
+                    <label>Реклама (% от выручки)</label>
+                    <input type="number" id="advert" value="2" step="0.1" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Брокеридж (% от выручки)</label>
+                    <input type="number" id="broker" value="3" step="0.1" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>ОПЕКС (₽/мес)</label>
+                    <input type="number" id="opexMonth" value="1500000" step="1">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Финансирование и график</legend>
+                <div class="form-group">
+                    <label>Средняя ставка по кредиту (% годовых)</label>
+                    <input type="number" id="rate" value="12" step="0.1" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Собственное участие (₽)</label>
+                    <input type="number" id="equity" value="150000000" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Срок строительства (мес.)</label>
+                    <input type="number" id="constrMonths" value="18" step="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Период продаж после ввода (мес.)</label>
+                    <input type="number" id="salesMonths" value="12" step="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Темп продаж</label>
+                    <select id="salesCurve">
+                        <option value="uniform" selected>Равномерный</option>
+                        <option value="s-curve">S-образная кривая (будущая версия)</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <button type="button" id="calculateBtn">Рассчитать LLCR</button>
+        </form>
+
+        <div id="resultBlock" class="results" style="display:none;">
+            <div class="result-item"><span>Совокупная выручка (гросс):</span><span id="resRevenue">-</span></div>
+            <div class="result-item"><span>Общие затраты (до процентов):</span><span id="resCosts">-</span></div>
+            <div class="result-item"><span>Тело кредита:</span><span id="resLoan">-</span></div>
+            <div class="result-item"><span>Капитализированные проценты:</span><span id="resCapInt">-</span></div>
+            <div class="result-item"><span>Максимальная задолженность:</span><span id="resMaxDebt">-</span></div>
+            <div class="result-item"><span>Чистая выручка (net):</span><span id="resNetRev">-</span></div>
+            <div class="result-item"><span>CFADS за период продаж:</span><span id="resCFADS">-</span></div>
+            <div class="result-item"><span>PV(CFADS) к старту:</span><span id="resPV">-</span></div>
+            <div class="result-item" style="font-size:1.2rem;"><span>LLCR:</span><span id="resLLCR" style="color: var(--tg-theme-link);">-</span></div>
+            <div class="note" id="resNote"></div>
+        </div>
+        <div class="note" style="margin-top:8px;">
+            Допущения: выборка кредита равномерно в стройке, продажи равномерно после ввода, проценты капитализируются.
+        </div>
+    </div>
+
+    <script>
+        // Telegram Mini App initialization
+        (function() {
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                // Apply Telegram theme colors
+                const themeParams = Telegram.WebApp.themeParams;
+                const style = document.documentElement.style;
+                style.setProperty('--tg-theme-bg', themeParams.bg_color || '#ffffff');
+                style.setProperty('--tg-theme-text', themeParams.text_color || '#000000');
+                style.setProperty('--tg-theme-hint', themeParams.hint_color || '#999999');
+                style.setProperty('--tg-theme-link', themeParams.link_color || '#2481cc');
+                style.setProperty('--tg-theme-button', themeParams.button_color || '#2481cc');
+                style.setProperty('--tg-theme-button-text', themeParams.button_text_color || '#ffffff');
+                style.setProperty('--tg-theme-secondary-bg', themeParams.secondary_bg_color || '#f5f5f5');
+            }
+        })();
+
+        // Format number with thousand separators
+        function fmt(num) {
+            if (isNaN(num)) return '—';
+            return Math.round(num).toLocaleString('ru-RU');
+        }
+
+        function fmt2(num) {
+            if (isNaN(num)) return '—';
+            return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // Calculation
+        document.getElementById('calculateBtn').addEventListener('click', function() {
+            // Read inputs
+            const get = id => parseFloat(document.getElementById(id).value) || 0;
+            
+            const areaRes = get('areaRes');
+            const priceRes = get('priceRes');
+            const areaComm = get('areaComm');
+            const priceComm = get('priceComm');
+            const areaStor = get('areaStor');
+            const priceStor = get('priceStor');
+            const areaApart = get('areaApart');
+            const priceApart = get('priceApart');
+            const spots = get('spots');
+            const priceSpot = get('priceSpot');
+
+            const costCMR = get('costCMR');
+            const costSoc = get('costSoc');
+            const costNet = get('costNet');
+            const costSpot = get('costSpot');
+            const vri = get('vri');
+            const other = get('other');
+
+            const advertPct = get('advert') / 100;
+            const brokerPct = get('broker') / 100;
+            const opexMonth = get('opexMonth');
+            const rateAnnual = get('rate') / 100;
+            const equity = get('equity');
+            const constrMonths = get('constrMonths');
+            const salesMonths = get('salesMonths');
+            const salesCurve = document.getElementById('salesCurve').value;
+
+            // Basic validation
+            if (constrMonths <= 0 || salesMonths <= 0) {
+                alert('Сроки строительства и продаж должны быть > 0');
+                return;
+            }
+
+            // Revenue
+            const revenueRes = areaRes * priceRes;
+            const revenueComm = areaComm * priceComm;
+            const revenueStor = areaStor * priceStor;
+            const revenueApart = areaApart * priceApart;
+            const revenueSpot = spots * priceSpot;
+            const totalRevenue = revenueRes + revenueComm + revenueStor + revenueApart + revenueSpot;
+
+            // Sellable area for cost (excl parking)
+            const sellAreaSqm = areaRes + areaComm + areaStor + areaApart;
+            const costPerSqm = costCMR + costSoc + costNet;
+            const directCostArea = sellAreaSqm * costPerSqm;
+            const directCostSpot = spots * costSpot;
+            
+            // Total costs during construction (excl capitalized interest)
+            const opexConstruction = opexMonth * constrMonths;
+            const totalDirectCost = directCostArea + directCostSpot + vri + other + opexConstruction;
+
+            // Loan and capitalized interest
+            const loanAmount = Math.max(0, totalDirectCost - equity);
+            // Uniform drawdown assumption: average outstanding = loanAmount/2 over constrMonths
+            const capInterest = loanAmount * rateAnnual * (constrMonths / 24);
+            const maxDebt = loanAmount + capInterest;
+
+            // Net revenue after commercial expenses
+            const netRevenue = totalRevenue * (1 - advertPct - brokerPct);
+
+            // CFADS during sales period
+            const opexSales = opexMonth * salesMonths;
+            const totalCFADS = netRevenue - opexSales;
+            const cfadsMonth = totalCFADS / salesMonths;  // uniform sales
+
+            // Discount rate monthly
+            const monthlyRate = rateAnnual / 12;
+            // PV of CFADS (at time 0 = start of construction)
+            let pvCFADS = 0;
+            for (let t = 1; t <= salesMonths; t++) {
+                const monthIndex = constrMonths + t;
+                pvCFADS += cfadsMonth / Math.pow(1 + monthlyRate, monthIndex);
+            }
+
+            // LLCR
+            let llcr = Infinity;
+            if (maxDebt > 0 && pvCFADS > 0) {
+                llcr = pvCFADS / maxDebt;
+            } else if (maxDebt === 0) {
+                llcr = Infinity;
+            } else {
+                llcr = 0;
+            }
+
+            // Display results
+            document.getElementById('resRevenue').textContent = fmt(totalRevenue) + ' ₽';
+            document.getElementById('resCosts').textContent = fmt(totalDirectCost) + ' ₽';
+            document.getElementById('resLoan').textContent = fmt(loanAmount) + ' ₽';
+            document.getElementById('resCapInt').textContent = fmt(capInterest) + ' ₽';
+            document.getElementById('resMaxDebt').textContent = fmt(maxDebt) + ' ₽';
+            document.getElementById('resNetRev').textContent = fmt(netRevenue) + ' ₽';
+            document.getElementById('resCFADS').textContent = fmt(totalCFADS) + ' ₽';
+            document.getElementById('resPV').textContent = fmt(pvCFADS) + ' ₽';
+            document.getElementById('resLLCR').textContent = isFinite(llcr) ? fmt2(llcr) : '∞ (без долга)';
+
+            const note = document.getElementById('resNote');
+            if (!isFinite(llcr)) {
+                note.textContent = 'Проект полностью финансируется из собственных средств.';
+            } else if (llcr >= 1.2) {
+                note.textContent = 'LLCR ≥ 1.2 — комфортный уровень для банка.';
+            } else if (llcr >= 1.0) {
+                note.textContent = 'LLCR 1.0-1.2 — покрытие на грани, требуется более детальный анализ.';
+            } else {
+                note.textContent = 'LLCR < 1.0 — денежного потока недостаточно для погашения долга.';
+            }
+
+            document.getElementById('resultBlock').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
